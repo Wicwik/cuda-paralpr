@@ -1,7 +1,7 @@
 #pragma once
 
 #include <memory>
-#include "../exception_handler/cuda_exception_handler.h"
+#include "../exception_handler/cuda_exception_handler.hh"
 
 struct MatDim
 {

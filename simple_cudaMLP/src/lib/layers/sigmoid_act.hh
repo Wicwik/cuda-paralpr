@@ -27,19 +27,20 @@ __global__ void sigmoid_backprop(float *input, float *input_error, float *output
     }
 }
 
-class SigmoidLayer : public layer
+class SigmoidLayer : public Layer
 {
+    
 public:
     SigmoidLayer(std::string name)
-        : _name{name}
     {
+        this->_name = name;
     }
 
     ~SigmoidLayer()
     {
     }
 
-    forward(Matrix &input)
+    Matrix &forward(Matrix &input)
     {
         _input = input;
         _output.allocate_mem(_input.dim);
@@ -50,9 +51,11 @@ public:
         sigmoid_forward<<<number_of_blocks, block_size>>>(_input.d_mem.get(), _output.d_mem.get(), _input.dim.x, _input.dim.y);
 
         NNException::throwIfDeviceErrorsOccurred("Failed at sigmoid forward propagation.");
+
+        return _output;
     }
 
-    backprop(Matrix &input_error, float learning_rate = 0.01)
+    Matrix &backprop(Matrix &input_error, float learning_rate = 0.01)
     {
         _error.allocate_mem(_input.dim);
 
@@ -62,6 +65,8 @@ public:
         sigmoid_backprop<<<number_of_blocks, block_size>>>(_input.d_mem.get(), input_error.d_mem.get(), _error.d_mem.get(), _input.dim.x, _input.dim.y);
 
         NNException::throwIfDeviceErrorsOccurred("Failed at sigmoid back propagation.");
+
+        return _error;
     }
 
 private:
@@ -69,4 +74,4 @@ private:
 
     Matrix _input;
     Matrix _error;
-} 
+};

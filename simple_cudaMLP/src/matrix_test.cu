@@ -1,4 +1,4 @@
-#include "lib/matrix/matrix.hh"
+#include "lib/layers/sigmoid_act.hh"
 
 int main()
 {

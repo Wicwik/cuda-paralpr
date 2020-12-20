@@ -14,13 +14,13 @@ class NNException : std::exception
 
 public:
     NNException(const char* exception_message) 
-        : exception_message{exception_message}
+        : _exception_message{exception_message}
     {
     }
 
     virtual const char* what() const throw()
     {
-        return exception_message;
+        return _exception_message;
     }
 
     static void throwIfDeviceErrorsOccurred(const char* exception_message) 
@@ -35,5 +35,5 @@ public:
     }
 
 private:
-    const char* exception_message;
+    const char* _exception_message;
 };

@@ -24,7 +24,7 @@ public:
 
     Matrix(size_t x = 1, size_t y = 1)
         : dim{x, y}, h_mem{nullptr}, d_mem{nullptr}
-        , h_is_allocated{false}, d_is_allocated{false}
+        , _h_is_allocated{false}, _d_is_allocated{false}
     {
     }
 
@@ -35,13 +35,13 @@ public:
 
     void allocate_mem()
     {
-        h_allocate_mem();
-        d_allocate_mem();
+        _h_allocate_mem();
+        _d_allocate_mem();
     }
 
     void allocate_mem(MatDim dim)
     {
-        if (!h_is_allocated && !d_is_allocated)
+        if (!_h_is_allocated && !_d_is_allocated)
         {
             this->dim = dim;
             allocate_mem();
@@ -50,7 +50,7 @@ public:
 
     void copy_hd()
     {
-        if (h_is_allocated && d_is_allocated)
+        if (_h_is_allocated && _d_is_allocated)
         {
             cudaMemcpy(d_mem.get(), h_mem.get(), dim.x * dim.y * sizeof(float), cudaMemcpyHostToDevice);
             NNException::throwIfDeviceErrorsOccurred("Cannot copy host data to CUDA device.");
@@ -63,7 +63,7 @@ public:
 
     void copy_dh()
     {
-        if (h_is_allocated && d_is_allocated)
+        if (_h_is_allocated && _d_is_allocated)
         {
             cudaMemcpy(h_mem.get(), d_mem.get(), dim.x * dim.y * sizeof(float), cudaMemcpyDeviceToHost);
             NNException::throwIfDeviceErrorsOccurred("Cannot copy host data to CUDA device.");
@@ -85,23 +85,23 @@ public:
     }
 
 private:
-    bool h_is_allocated;
-    bool d_is_allocated;
+    bool _h_is_allocated;
+    bool _d_is_allocated;
     
 
-    void h_allocate_mem()
+    void _h_allocate_mem()
     {
-        if (!h_is_allocated)
+        if (!_h_is_allocated)
         {
             h_mem = std::shared_ptr<float>(new float[dim.x * dim.y], [&](float *ptr){ delete[] ptr; });
 
-            h_is_allocated = true;
+            _h_is_allocated = true;
         }
     }
 
-    void d_allocate_mem()
+    void _d_allocate_mem()
     {
-        if (!d_is_allocated)
+        if (!_d_is_allocated)
         {
             float *devmem = nullptr;
 
@@ -110,7 +110,7 @@ private:
 
             d_mem = std::shared_ptr<float>(devmem, [&](float *ptr){ cudaFree(ptr); });
 
-            d_is_allocated = true;
+            _d_is_allocated = true;
         }
 
     }

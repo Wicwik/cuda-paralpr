@@ -1,12 +1,17 @@
 #pragma once
 
 #include <memory>
-#include "cuda_exception_handler.h"
+#include "../exception_handler/cuda_exception_handler.h"
 
 struct MatDim
 {
     size_t x;
     size_t y;
+
+    MatDim(size_t x = 1, size_t y = 1)
+        : x{x}, y{y}
+    {
+    }
 };
 
 class Matrix

@@ -169,7 +169,8 @@ private:
 
     void _initialize_weights()
     {
-        std::default_random_engine gen;
+        std::random_device rd;
+        std::default_random_engine gen(rd());
         std::normal_distribution<float> dist;
 
         for (int i = 0; i < _weights.dim.x; i++)

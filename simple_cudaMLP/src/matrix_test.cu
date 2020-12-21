@@ -1,5 +1,7 @@
-#include "lib/loss_function/bce.hh"
 #include "lib/layers/linear.hh"
+#include "lib/loss_function/bce.hh"
+
+
 
 int main()
 {
@@ -28,4 +30,6 @@ int main()
     std::cout << BCE().cost(y, Y) << std::endl;
 
     std::cout << linear.get_name() << std::endl;
+
+    return 0;
 }

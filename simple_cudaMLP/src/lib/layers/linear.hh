@@ -54,7 +54,7 @@ __global__ void linear_update_bias(float *output_error, float *bias,  int output
     {
         int x = i % output_error_x;
         int y = i / output_error_x;
-        atomicAdd(&bias[y], - learning_rate*(output_error[y*output_error_x + x]/output_error_x));
+        atomicAdd(&bias[y], -learning_rate*(output_error[y*output_error_x + x]/output_error_x));
     }
 }
 

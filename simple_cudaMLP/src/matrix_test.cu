@@ -1,4 +1,4 @@
-#include "lib/layers/linear.hh"
+#include "lib/loss_function/bce.hh"
 
 int main()
 {

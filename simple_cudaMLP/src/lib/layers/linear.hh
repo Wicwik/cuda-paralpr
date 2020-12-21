@@ -1,6 +1,7 @@
+#pragma once
+
 #include <cassert>
 #include <random>
-
 #include "layer.hh"
 
 #define assertm(exp, msg) assert(((void)msg, exp))

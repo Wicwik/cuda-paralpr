@@ -1,1 +1,1 @@
-# CUDA introduction to neural network and cuDNN library
+# CUDA introduction to neural networks and cuDNN library

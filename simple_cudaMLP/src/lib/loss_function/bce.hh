@@ -1,23 +1,26 @@
-#include <cassert>
+#pragma once
 
-#include "../matrix/matrix.h"
+#include <cassert>
+#include <cmath>
+
+#include "../matrix/matrix.hh"
 
 #define assertm(exp, msg) assert(((void)msg, exp))
 
 __global__ void bce_cost(float *fake, float *real, int real_x, float *cost)
 {
-    int index = blockIdx.x * blockDim.x + threadIdx.x;
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (i < real_x)
     {
-        float tmp = real[i] * logf(fake[i]) + (1.0f - real[i]) * logf(1.0f - fake[i]);
+        float tmp = real[i] * std::logf(fake[i]) + (1.0f - real[i]) * std::logf(1.0f - fake[i]);
         atomicAdd(cost, -tmp/real_x);
     }
 }
 
 __global__ void bce_gradient(float *fake, float *real, float *output_derivative, int real_x)
 {
-    int index = blockIdx.x * blockDim.x + threadIdx.x;
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (i < real_x)
     {
@@ -34,7 +37,7 @@ public:
     {
         assertm(fake.dim.x == real.dim.x, "Fake and real must have equal lenght.");
 
-        float *cost;
+        float *cost = nullptr;
         cudaMallocManaged(&cost, sizeof(float));
 
         *cost = 0.0f;
@@ -66,4 +69,4 @@ public:
 
         return output_derivative;
     }
-}
+};

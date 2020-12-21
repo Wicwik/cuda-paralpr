@@ -2,6 +2,8 @@
  *   An Interface class for layers
  */
 
+#pragma once
+
 #include <string>
 #include "../matrix/matrix.hh"
 

@@ -16,24 +16,33 @@ __global__ void linear_forward(float *weights, float *input, float *output, floa
 
     float tmp = 0.0f;
 
-    if ((row < output_y) && (col < output_x))
+    // printf("%d %d | ", output_x, output_y);
+ 
+    if ((row < output_x) && (col < output_y))
     {
         for (int i = 0; i < weights_x; i++)
         {
-            tmp += weights[row*weights_x + i] * input[i*input_x + col];
+            tmp += weights[i*weights_y + col] * input[row*input_y + i];
+            
+            // # if __CUDA_ARCH__>=200
+            // printf("%f * %f = %f\n", weights[i*weights_y + col], input[row*input_y + i], weights[i*weights_y + col] * input[row*input_y + i]);
+            // #endif 
         }
 
-        output[row*output_x + col] = tmp + bias[row];
+        // # if __CUDA_ARCH__>=200
+        // printf("%d %d %f\n", row, col, tmp);
+        // #endif 
+        output[row*output_y + col] = tmp + bias[col];
     }
 }
 
 __global__ void linear_backprop(float *weights, float *output_error, float *input_error, int weights_x, int weights_y, int output_error_x, int output_error_y)
 {
-    int row = blockIdx.y * blockDim.y + threadIdx.y;
-    int col = blockIdx.x * blockDim.x + threadIdx.x;
+    int col = blockIdx.y * blockDim.y + threadIdx.y;
+    int row = blockIdx.x * blockDim.x + threadIdx.x;
 
     int input_error_x = output_error_x;
-    int input_error_y = weights_y;
+    int input_error_y = weights_x;
 
     float tmp = 0.0f;
 
@@ -41,9 +50,17 @@ __global__ void linear_backprop(float *weights, float *output_error, float *inpu
     {
         for (int i = 0; i < weights_y; i++)
         {
-            tmp += weights[i*weights_x + row] * output_error[i*output_error_x + col];
+            tmp += weights[row*weights_y + i] * output_error[col*output_error_y + i];
+            //  # if __CUDA_ARCH__>=200
+            // printf("%f * %f = %f, %d %d\n", weights[row*weights_y + i], output_error[col*output_error_y + i], tmp , row, col);
+            // #endif 
         }
-        input_error[row*input_error_x + col] = tmp;
+
+        // # if __CUDA_ARCH__>=200
+        // printf("%d %d %d %f\n", row, col, col*input_error_y + row ,tmp);
+        // #endif 
+
+        input_error[col*input_error_y + row] = tmp;
     }
 }
 
@@ -55,7 +72,7 @@ __global__ void linear_update_bias(float *output_error, float *bias,  int output
     {
         int x = i % output_error_x;
         int y = i / output_error_x;
-        atomicAdd(&bias[y], -learning_rate*(output_error[y*output_error_x + x]/output_error_x));
+        atomicAdd(&bias[y], -learning_rate*(output_error[x*output_error_y + y]/output_error_x));
     }
 }
 
@@ -65,7 +82,7 @@ __global__ void linear_update_weights(float *output_error, float *input, float *
     int row = blockIdx.y * blockDim.y + threadIdx.y;
 
     int weights_x = input_y;
-    int weights_y = output_error_x;
+    int weights_y = output_error_y;
 
     float tmp = 0.0f;
 
@@ -73,15 +90,26 @@ __global__ void linear_update_weights(float *output_error, float *input, float *
     {
         for (int i = 0; i < output_error_x; i++)
         {
-            tmp += output_error[row*output_error_x + i] * input[col*input_x + i];
+            tmp += output_error[i*output_error_y + row] * input[i*input_y + col];
+
+            //  # if __CUDA_ARCH__>=200
+            // printf("%f * %f = %f, %d %d\n", output_error[i*output_error_y + row], input[i*input_y + col], tmp , row, col);
+            // #endif 
         }
-        weights[row*weights_x + col] = weights[row*weights_x + col] - learning_rate*(tmp/input_x);
+        // # if __CUDA_ARCH__>=200
+        // printf("%d %d %d %f\n", row, col, col*weights_y + row ,tmp);
+        // #endif 
+
+        weights[col*weights_y + row] = weights[col*weights_y + row] - learning_rate*(tmp/input_x);
     }
 }
 
 class LinearLayer : public Layer
 {
 public:
+    Matrix _weights;
+    Matrix _bias;
+
     LinearLayer(std::string name, MatDim weights_dims)
         : _weights{weights_dims}, _bias{weights_dims.y, 1}
     {
@@ -150,9 +178,6 @@ public:
 private:
     const float threshold = 0.01;
 
-    Matrix _weights;
-    Matrix _bias;
-
     Matrix _output;
     Matrix _input;
     Matrix _input_error;
@@ -171,13 +196,13 @@ private:
     {
         std::random_device rd;
         std::default_random_engine gen(rd());
-        std::normal_distribution<float> dist;
+        std::normal_distribution<float> dist(0.0f, 1.0f);
 
         for (int i = 0; i < _weights.dim.x; i++)
         {
             for (int j = 0; j < _weights.dim.y; j++)
             {
-                _weights[i*_weights.dim.x + j] = dist(gen) * threshold;
+                _weights[i*_weights.dim.y + j] = dist(gen) * threshold;
             }
         }
         
@@ -187,7 +212,7 @@ private:
     void _compute_output(Matrix input)
     {
         dim3 block_size(8, 8);
-        dim3 number_of_blocks((_output.dim.x + block_size.x - 1)/block_size.x, (_output.dim.y + block_size.y -1)/block_size.y);
+        dim3 number_of_blocks((_output.dim.y + block_size.y - 1)/block_size.y, (_output.dim.x + block_size.x - 1)/block_size.x);
 
         linear_forward<<<number_of_blocks, block_size>>>(_weights.d_mem.get(), _input.d_mem.get(), _output.d_mem.get(), _bias.d_mem.get(), _weights.dim.x, _weights.dim.y, _input.dim.x, _input.dim.y);
     }
@@ -195,7 +220,7 @@ private:
     void _compute_backprop_error(Matrix &output_error)
     {
         dim3 block_size(8, 8);
-        dim3 number_of_blocks((_input.dim.x + block_size.x - 1)/block_size.x, (_input.dim.y + block_size.y -1)/block_size.y);
+        dim3 number_of_blocks((_input.dim.y + block_size.y -1)/block_size.y, (_input.dim.x + block_size.x - 1)/block_size.x);
 
         linear_backprop<<<number_of_blocks, block_size>>>(_weights.d_mem.get(), output_error.d_mem.get(), _input_error.d_mem.get(), _weights.dim.x, _weights.dim.y, output_error.dim.x, output_error.dim.y);
     }

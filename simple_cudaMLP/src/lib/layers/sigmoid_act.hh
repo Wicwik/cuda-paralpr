@@ -1,10 +1,11 @@
 #pragma once
 
+#include <cmath>
 #include "layer.hh"
 
 __device__ float sigmoid(float x) 
 {
-    return 1.0f / (1 + exp(-x));
+    return 1.0f / (1.0f + std::expf(-x));
 }
 
 __global__ void sigmoid_forward(float *input, float *output, int input_x, int input_y)
@@ -23,7 +24,7 @@ __global__ void sigmoid_backprop(float *input, float *input_error, float *output
 
     if (i < (input_x * input_y))
     {
-        output_error[i] = input_error[i] * sigmoid(input[i]) * (1 - sigmoid(input[i]));
+        output_error[i] = input_error[i] * sigmoid(input[i]) * (1.0f - sigmoid(input[i]));
     }
 }
 

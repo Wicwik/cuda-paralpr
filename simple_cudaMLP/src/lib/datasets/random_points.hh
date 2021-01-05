@@ -11,12 +11,12 @@ public:
     {
         std::random_device rd;
         std::default_random_engine gen(rd());
-        std::uniform_real_distribution<float> dist;
+        std::uniform_real_distribution<float> dist(-1000, 1000);
 
         for (int i = 0; i < number_of_batches; i++)
         {
-            _features.push_back(Matrix(MatDim{batch_size, 2}));
-            _classes.push_back(Matrix(MatDim{batch_size, 1}));
+            _features.push_back(Matrix(MatDim(_batch_size, 2)));
+            _classes.push_back(Matrix(MatDim(_batch_size, 1)));
 
             _features[i].allocate_mem();
             _classes[i].allocate_mem();
@@ -24,21 +24,23 @@ public:
             for (int j = 0; j < batch_size; j++)
             {
                 _features[i][j] = dist(gen);
-                _features[i][_features.dim.x + j] = dist(gen);
+                _features[i][_features[i].dim.x + j] = dist(gen);
 
-                if((_features[i][j] < 0 && _features[i][_features.dim.x + j] < 0) || (_features[i][j] > 0 && _features[i][_features.dim.x + j] > 0))
+                // std::cout << _features[i][j] << " " << _features[i][_features[i].dim.x + j] << std::endl;
+
+                if((_features[i][j] < 0 && _features[i][_features[i].dim.x + j] < 0) || (_features[i][j] > 0 && _features[i][_features[i].dim.x + j] > 0))
                 {
-                    _classes[i] = 1;
+                    _classes[i][j] = 1.0f;
                 }
                 else
                 {
-                    _classes[i] = 0;
+                    _classes[i][j] = 0.0f;
                 }
             }
-        }
 
-        _features.copy_hd();
-        _classes.copy_hd();
+            _features[i].copy_hd();
+            _classes[i].copy_hd();
+        }
     }
 
     int get_number_of_batches()

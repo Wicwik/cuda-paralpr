@@ -35,9 +35,34 @@ public:
     {
         Matrix tmp = input;
 
-        for (const auto layer: _layers)
+        // for (int c = 0; c < tmp.dim.x; c++)
+        // {
+        //     std::cout << "[" << c << "] ";
+        //     for (int r = 0; r < tmp.dim.y; r++)
+        //     {
+        //         std::cout << tmp[c*tmp.dim.y + r] << " ";
+        //     }
+
+        //     std::cout << std::endl;
+        // }
+
+        for (auto layer: _layers)
         {
             tmp = layer->forward(tmp);
+            // tmp.copy_dh();
+            // std::cout << layer->get_name() << std::endl;
+
+            // for (int i = 0; i < tmp.dim.x; i++)
+            // {
+            //     for (int j = 0; j < tmp.dim.y; j++)
+            //     {
+            //         std::cout << tmp[i*tmp.dim.y + j] << " ";
+            //     }
+
+            //     std::cout << std::endl;
+            // }
+
+            // std::cout << std::endl;
         }
 
         _output = tmp;
@@ -53,6 +78,20 @@ public:
         for (auto it = _layers.rbegin(); it != _layers.rend(); it++)
         {
             error = (*it)->backprop(error, _learning_rate);
+
+            // std::cout << (*it)->get_name() << std::endl;
+
+            // error.copy_dh();
+
+            // for (int i = 0; i < error.dim.x; i++)
+            // {
+            //     for (int j = 0; j < error.dim.y; j++)
+            //     {
+            //         std::cout << error[i*error.dim.y + j] << " ";
+            //     }
+
+            //     std::cout << std::endl;
+            // }
         }
 
         cudaDeviceSynchronize();

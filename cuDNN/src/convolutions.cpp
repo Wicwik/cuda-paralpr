@@ -8,7 +8,7 @@ int main(int argc, char **argv)
 {
 	cudnnHandle_t cudnn;
 
-	cv::Mat img = ip::load_img("../img/nvidia_logo.png");
+	cv::Mat img = ip::load_img("../img/ja.jpeg");
   	cudnn_check(cudnnCreate(&cudnn));
 
   	size_t batch_size = 1;

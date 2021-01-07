@@ -11,7 +11,7 @@ public:
     {
         std::random_device rd;
         std::default_random_engine gen(rd());
-        std::uniform_real_distribution<float> dist(-1000, 1000);
+        std::uniform_real_distribution<float> dist(-1, 1);
 
         for (int i = 0; i < number_of_batches; i++)
         {

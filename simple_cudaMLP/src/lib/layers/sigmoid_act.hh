@@ -5,7 +5,7 @@
 
 __device__ float sigmoid(float x) 
 {
-    return 1.0f / (1.0f + std::expf(-x));
+    return 1.0f / (1.0f + expf(-x));
 }
 
 __global__ void sigmoid_forward(float *input, float *output, int input_x, int input_y)

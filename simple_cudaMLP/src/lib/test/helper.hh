@@ -64,7 +64,7 @@ namespace helper
 
     float calc_sigmoid(float x)
     {
-        return 1.0f / (1.0f + std::expf(-x));
+        return 1.0f / (1.0f + expf(-x));
     }
 
     bool cmpf(float A, float B, float epsilon = 0.005f)

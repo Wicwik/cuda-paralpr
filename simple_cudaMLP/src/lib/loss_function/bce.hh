@@ -13,7 +13,7 @@ __global__ void bce_cost(float *fake, float *real, int real_x, float *cost)
 
     if (i < real_x)
     {
-        float tmp = real[i] * std::logf(fake[i]) + (1.0f - real[i]) * std::logf(1.0f - fake[i]);
+        float tmp = real[i] * logf(fake[i]) + (1.0f - real[i]) * logf(1.0f - fake[i]);
         atomicAdd(cost, -tmp/real_x);
     }
 }

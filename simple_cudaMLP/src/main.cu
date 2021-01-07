@@ -1,7 +1,6 @@
 #include "lib/neural_network.hh"
 #include "lib/layers/linear.hh"
 #include "lib/layers/relu_act.hh"
-#include "lib/layers/leaky_relu_act.hh"
 #include "lib/layers/sigmoid_act.hh"
 #include "lib/loss_function/bce.hh"
 #include "lib/datasets/random_points.hh"

@@ -1,3 +1,8 @@
+/*
+ *   Generate random points dataset
+ */
+
+
 #include <random>
 #include "../matrix/matrix.hh"
 
@@ -10,8 +15,8 @@ public:
         , _number_of_batches{number_of_batches}
     {
         std::random_device rd;
-        std::default_random_engine gen(rd());
-        std::uniform_real_distribution<float> dist(-1, 1);
+        std::default_random_engine gen(rd()); // random on hardware
+        std::uniform_real_distribution<float> dist(-1, 1); // real distribution
 
         for (int i = 0; i < number_of_batches; i++)
         {
@@ -26,15 +31,17 @@ public:
                 _features[i][j] = dist(gen);
                 _features[i][_features[i].dim.x + j] = dist(gen);
 
-                // std::cout << _features[i][j] << " " << _features[i][_features[i].dim.x + j] << std::endl;
+                // std::cout << _features[i][j] << " " << _features[i][_features[i].dim.x + j] << " ";
 
                 if((_features[i][j] < 0 && _features[i][_features[i].dim.x + j] < 0) || (_features[i][j] > 0 && _features[i][_features[i].dim.x + j] > 0))
                 {
                     _classes[i][j] = 1.0f;
+                    // std::cout << 1 << std::endl;
                 }
                 else
                 {
                     _classes[i][j] = 0.0f;
+                    // std::cout << 0 << std::endl;
                 }
             }
 

@@ -1,13 +1,19 @@
+/*
+ *   Sigmoid activation layer
+ */
+
 #pragma once
 
 #include <cmath>
 #include "layer.hh"
 
+// sigmoid calculation function only callable form kernels
 __device__ float sigmoid(float x) 
 {
     return 1.0f / (1.0f + expf(-x));
 }
 
+// kernel - calculate sigmoid function value for each item in input matrix
 __global__ void sigmoid_forward(float *input, float *output, int input_x, int input_y)
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -18,6 +24,7 @@ __global__ void sigmoid_forward(float *input, float *output, int input_x, int in
     }
 }
 
+// kernel - calcualte sigmoid function derivate for each item in input matrix
 __global__ void sigmoid_backprop(float *input, float *input_error, float *output_error, int input_x, int input_y)
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;

@@ -1,8 +1,13 @@
+/*
+ *   Matrix implemetation
+ */
+
 #pragma once
 
 #include <memory>
 #include "../exception_handler/cuda_exception_handler.hh"
 
+// simple dimension structure
 struct MatDim
 {
     size_t x;
@@ -14,13 +19,15 @@ struct MatDim
     }
 };
 
+
+// matrix class representation
 class Matrix
 {
 public:
     MatDim dim;
 
-    std::shared_ptr<float> h_mem;
-    std::shared_ptr<float> d_mem;
+    std::shared_ptr<float> h_mem; // host memory
+    std::shared_ptr<float> d_mem; // device memory
 
     Matrix(size_t x = 1, size_t y = 1)
         : dim{x, y}, h_mem{nullptr}, d_mem{nullptr}
@@ -35,8 +42,8 @@ public:
 
     void allocate_mem()
     {
-        _h_allocate_mem();
-        _d_allocate_mem();
+        _h_allocate_mem(); // we need to allocate host memory
+        _d_allocate_mem(); // we need to allocate device memory
     }
 
     void allocate_mem(MatDim dim)
@@ -48,6 +55,7 @@ public:
         }
     }
 
+    // copy host memory to device memory
     void copy_hd()
     {
         if (_h_is_allocated && _d_is_allocated)
@@ -61,6 +69,7 @@ public:
         }
     }
 
+    // copy device memory to host memory
     void copy_dh()
     {
         if (_h_is_allocated && _d_is_allocated)
@@ -74,6 +83,7 @@ public:
         }
     }
 
+    // overloaded [] operator for easy access
     float& operator[](const int i)
     {
         return h_mem.get()[i];

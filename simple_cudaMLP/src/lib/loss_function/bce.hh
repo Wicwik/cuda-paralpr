@@ -1,3 +1,7 @@
+/*
+ *   BCE cost function
+ */
+
 #pragma once
 
 #include <cassert>
@@ -7,6 +11,7 @@
 
 #define assertm(exp, msg) assert(((void)msg, exp))
 
+// calculate the BCE cost
 __global__ void bce_cost(float *fake, float *real, int real_x, float *cost)
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -18,6 +23,7 @@ __global__ void bce_cost(float *fake, float *real, int real_x, float *cost)
     }
 }
 
+// calculate the derivative for gradient to improve weight in backprop
 __global__ void bce_gradient(float *fake, float *real, float *output_derivative, int real_x)
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -38,7 +44,7 @@ public:
         assertm(fake.dim.x == real.dim.x, "Fake and real must have equal lenght.");
 
         float *cost = nullptr;
-        cudaMallocManaged(&cost, sizeof(float));
+        cudaMallocManaged(&cost, sizeof(float)); // Unified Memory 
 
         *cost = 0.0f;
 

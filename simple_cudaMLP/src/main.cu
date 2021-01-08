@@ -5,6 +5,7 @@
 #include "lib/loss_function/bce.hh"
 #include "lib/datasets/random_points.hh"
 
+// calculate accuracy
 float acc(const Matrix& fake, const Matrix &real)
 {
     srand( time(NULL) );
@@ -87,9 +88,6 @@ int main()
     Matrix test = nn.forward(dataset.get_features().at(batches-1));
     test.copy_dh();
     std::cout << "Acc: " << acc(test, dataset.get_classes().at(batches-1)) << std::endl;
-
-
-    std::cout << "end of test" << std::endl;
 
     return 0;
 }

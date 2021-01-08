@@ -1,3 +1,7 @@
+/*
+ *   Neural net implementation
+ */
+
 #pragma once
 
 #include <vector>
@@ -48,7 +52,7 @@ public:
 
         for (auto layer: _layers)
         {
-            tmp = layer->forward(tmp);
+            tmp = layer->forward(tmp); // forward
             // tmp.copy_dh();
             // std::cout << layer->get_name() << std::endl;
 
@@ -77,7 +81,7 @@ public:
 
         for (auto it = _layers.rbegin(); it != _layers.rend(); it++)
         {
-            error = (*it)->backprop(error, _learning_rate);
+            error = (*it)->backprop(error, _learning_rate); // backprop from back
 
             // std::cout << (*it)->get_name() << std::endl;
 
@@ -94,7 +98,7 @@ public:
             // }
         }
 
-        cudaDeviceSynchronize();
+        cudaDeviceSynchronize(); // wait for GPU
     }
 
 private:

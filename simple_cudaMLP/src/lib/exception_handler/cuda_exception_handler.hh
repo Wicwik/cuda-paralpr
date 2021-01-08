@@ -30,7 +30,7 @@ public:
         if (error != cudaSuccess) 
         {
             std::cerr << error << ": " << exception_message;
-            throw NNException(exception_message);
+            throw NNException(exception_message); // throw and exception if an error happens
         }
     }
 

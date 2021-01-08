@@ -21,6 +21,7 @@ int main(int argc, char **argv)
 	size_t height = img.rows;
 	size_t width = img.cols;
 
+  
   cudnnTensorDescriptor_t input_desc;
   cudnn_check(cudnnCreateTensorDescriptor(&input_desc));
   cudnn_check(cudnnSetTensor4dDescriptor(input_desc, // descriptor to set

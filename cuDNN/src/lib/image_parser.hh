@@ -1,3 +1,8 @@
+/*
+ *   Simple image handling using OpenCV
+ */
+
+
 #pragma once
 
 #include <opencv2/opencv.hpp>
@@ -8,8 +13,8 @@ namespace ip
     {
         cv::Mat img = imread(image_path, cv::IMREAD_COLOR);
 
-        img.convertTo(img, CV_32FC3);
-      	cv::normalize(img, img, 0, 1, cv::NORM_MINMAX);
+        img.convertTo(img, CV_32FC3); // 32 bit floats
+      	cv::normalize(img, img, 0, 1, cv::NORM_MINMAX); // normalize to 0-1
 
         return img;
     }
@@ -17,8 +22,8 @@ namespace ip
     void show_img(float* buffer, int height, int width, std::string save_path = "./saved_img.png")
     {
         cv::Mat output_image(height, width, CV_32FC3, buffer);
-        cv::threshold(output_image, output_image, 0, 0, cv::THRESH_TOZERO);
-        cv::normalize(output_image, output_image, 0.0, 255.0, cv::NORM_MINMAX);
+        cv::threshold(output_image, output_image, 0, 0, cv::THRESH_TOZERO); // treshold negative values
+        cv::normalize(output_image, output_image, 0.0, 255.0, cv::NORM_MINMAX); // normalize to 0-255
         output_image.convertTo(output_image, CV_8UC3);
 
     	cv::imshow("Display window", output_image);
@@ -26,7 +31,7 @@ namespace ip
         
         if(k == 's')
         {
-            cv::imwrite(save_path, output_image);
+            cv::imwrite(save_path, output_image); // saves image
         }
     }
 }

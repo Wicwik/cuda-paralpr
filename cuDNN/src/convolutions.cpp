@@ -8,22 +8,23 @@ int main(int argc, char **argv)
 {
   if (argc != 2)
   {
-
+    std::cerr << "Invalid number of parameters\n";
+    return 1;
   }
 
-	cudnnHandle_t cudnn;
+	cudnnHandle_t cudnn; // create handler struct
 
-	cv::Mat img = ip::load_img("../img/nvidia_logo.png");
-  cudnn_check(cudnnCreate(&cudnn));
+	cv::Mat img = ip::load_img(argv[1]);
+  cudnn_check(cudnnCreate(&cudnn)); // initialize the handler
 
-	size_t batch_size = 1;
-	size_t channels = 3;
+	size_t batch_size = 1; // single image
+	size_t channels = 3; // RGB
 	size_t height = img.rows;
 	size_t width = img.cols;
 
-  
-  cudnnTensorDescriptor_t input_desc;
-  cudnn_check(cudnnCreateTensorDescriptor(&input_desc));
+
+  cudnnTensorDescriptor_t input_desc; // create descriptor struct
+  cudnn_check(cudnnCreateTensorDescriptor(&input_desc)); // inicialize descriptor
   cudnn_check(cudnnSetTensor4dDescriptor(input_desc, // descriptor to set
   									   CUDNN_TENSOR_NHWC, // descriptor format (NCHW/NHWC)
   									   CUDNN_DATA_FLOAT, // data type
@@ -33,8 +34,8 @@ int main(int argc, char **argv)
   									   width  // W - width
   									   )); 
 
-  cudnnTensorDescriptor_t output_desc;
-  cudnn_check(cudnnCreateTensorDescriptor(&output_desc));
+  cudnnTensorDescriptor_t output_desc; // create descriptor struct
+  cudnn_check(cudnnCreateTensorDescriptor(&output_desc)); // inicialize descriptor
   cudnn_check(cudnnSetTensor4dDescriptor(output_desc, // descriptor to set
   									   CUDNN_TENSOR_NHWC, // descriptor format (NCHW/NHWC)
   									   CUDNN_DATA_FLOAT, // data type
@@ -44,11 +45,11 @@ int main(int argc, char **argv)
   									   width  // W - width
   									   )); 
 
-  cudnnFilterDescriptor_t filter_desc;
-  cudnn_check(cudnnCreateFilterDescriptor(&filter_desc));
-  cudnn_check(cudnnSetFilter4dDescriptor(filter_desc,
+  cudnnFilterDescriptor_t filter_desc; // create descriptor struct
+  cudnn_check(cudnnCreateFilterDescriptor(&filter_desc)); // inicialize descriptor
+  cudnn_check(cudnnSetFilter4dDescriptor(filter_desc, // descriptor to set
   									   CUDNN_DATA_FLOAT, // data type
-  									   CUDNN_TENSOR_NCHW, // tensor format
+  									   CUDNN_TENSOR_NCHW, // tensor format, we use NCHW for easier template initialization
   									   channels, // output channels
   									   channels, // input channels
   									   3, // filter height
@@ -64,8 +65,8 @@ int main(int argc, char **argv)
   											1, // horizontal stride
   											1, // dilation height
   											1, // dilation width
-  											CUDNN_CROSS_CORRELATION,
-  											CUDNN_DATA_FLOAT
+  											CUDNN_CROSS_CORRELATION, // convolution algortithm
+  											CUDNN_DATA_FLOAT // data type
   											));
 
 
@@ -77,13 +78,14 @@ int main(int argc, char **argv)
   												filter_desc,
   												convolution_desc,
   												output_desc,
-  												0, 
-  												&algo_count, 
-  												&convolution_algorithms
+  												0, // maximum number of available algorithms
+  												&algo_count, // number of available algorithms
+  												&convolution_algorithms // algorithm output
   												));
 
-  cudnnConvolutionFwdAlgo_t convolution_algorithm = convolution_algorithms.algo;
+  cudnnConvolutionFwdAlgo_t convolution_algorithm = convolution_algorithms.algo; // get the algorithm
 
+  // calculate workspace size
   size_t workspace_size = 0;
   cudnn_check(cudnnGetConvolutionForwardWorkspaceSize(cudnn,
   													input_desc,
@@ -97,19 +99,23 @@ int main(int argc, char **argv)
 	std::cout << "Workspace size: " << (workspace_size/1048576.0) << " MB" << std::endl;
 
 
+  // memory allocation part
 	void* d_workspace{nullptr};
-	cudaMalloc(&d_workspace, workspace_size);
+	cudaMalloc(&d_workspace, workspace_size); // allocate workspace on device
 
 	int image_size = batch_size * channels * height * width * sizeof(float);
 
+  // allocate and copy input image to device
 	float* d_input{nullptr};
 	cudaMalloc(&d_input, image_size);
 	cudaMemcpy(d_input, img.ptr<float>(0), image_size, cudaMemcpyHostToDevice);
 
+  // allocate and set output image to zeros to device
 	float *d_output{nullptr};
 	cudaMalloc(&d_output, image_size);
 	cudaMemset(d_output, 0, image_size);
 
+  // filter template
 	const float filer_template[3][3] =
 	{
 		{1,  1, 1},
@@ -126,18 +132,22 @@ int main(int argc, char **argv)
 			{
 				for (int l = 0; l < 3; l++)
 				{
-					h_filter[i][j][k][l] = filer_template[k][l];
+					h_filter[i][j][k][l] = filer_template[k][l]; // this is why we used NCHW
 				}
 			}
 		}
 	}
 
+  // allocate and initilaze the filter on device
 	float *d_filter{nullptr};
 	cudaMalloc(&d_filter, sizeof(h_filter));
 	cudaMemcpy(d_filter, h_filter, sizeof(h_filter), cudaMemcpyHostToDevice);
 
-	const float alpha = 1, beta = 0;
-	cudnn_check(cudnnConvolutionForward(cudnn,
+  // run convolution
+	const float alpha = 1, beta = 0; // from api docs: Pointers to scaling factors (in host memory) used to blend the computation result with prior value in the output layer as follows: 
+	// dstValue = alpha[0]*result + beta[0]*priorDstValue
+  
+  cudnn_check(cudnnConvolutionForward(cudnn,
 										&alpha,
 										input_desc,
 										d_input,
@@ -152,11 +162,14 @@ int main(int argc, char **argv)
 										d_output
 										));
 
+  // allocate and copy output to host
 	float *h_output = new float[image_size];
 	cudaMemcpy(h_output, d_output, image_size, cudaMemcpyDeviceToHost);
 
+  // show image
 	ip::show_img(h_output, height, width);
 
+  // cleaning
 	delete[] h_output;
 	cudaFree(d_filter);
 	cudaFree(d_input);

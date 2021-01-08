@@ -1,3 +1,7 @@
+/*
+ *	 This macro checks if anny error happend at CUDAs side.
+ */
+
 #pragma once
 #include <iostream>
 

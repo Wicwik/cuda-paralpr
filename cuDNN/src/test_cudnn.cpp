@@ -4,7 +4,6 @@
 
 int main() 
 {
-
   cudnnHandle_t cudnn;
   cudnnCreate(&cudnn);
   cudnnDestroy(cudnn);

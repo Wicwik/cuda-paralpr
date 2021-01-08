@@ -8,7 +8,7 @@ class NeuralNetwork
 {
 
 public:
-    NeuralNetwork(float learning_rate = 0.1)
+    NeuralNetwork(float learning_rate = 0.01)
         : _learning_rate{learning_rate}
     {
     }

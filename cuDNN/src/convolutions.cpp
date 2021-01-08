@@ -6,101 +6,106 @@
 
 int main(int argc, char **argv)
 {
+  if (argc != 2)
+  {
+
+  }
+
 	cudnnHandle_t cudnn;
 
-	cv::Mat img = ip::load_img("../img/ja.jpeg");
-  	cudnn_check(cudnnCreate(&cudnn));
+	cv::Mat img = ip::load_img("../img/nvidia_logo.png");
+  cudnn_check(cudnnCreate(&cudnn));
 
-  	size_t batch_size = 1;
+	size_t batch_size = 1;
 	size_t channels = 3;
 	size_t height = img.rows;
 	size_t width = img.cols;
 
-  	cudnnTensorDescriptor_t input_desc;
-  	cudnn_check(cudnnCreateTensorDescriptor(&input_desc));
-  	cudnn_check(cudnnSetTensor4dDescriptor(input_desc, // descriptor to set
-  										   CUDNN_TENSOR_NHWC, // descriptor format (NCHW/NHWC)
-  										   CUDNN_DATA_FLOAT, // data type
-  										   batch_size, // N - batch size
-  										   channels, // C - number of channels (RGB)
-  										   height, // H - height
-  										   width  // W - width
-  										   )); 
+  cudnnTensorDescriptor_t input_desc;
+  cudnn_check(cudnnCreateTensorDescriptor(&input_desc));
+  cudnn_check(cudnnSetTensor4dDescriptor(input_desc, // descriptor to set
+  									   CUDNN_TENSOR_NHWC, // descriptor format (NCHW/NHWC)
+  									   CUDNN_DATA_FLOAT, // data type
+  									   batch_size, // N - batch size
+  									   channels, // C - number of channels (RGB)
+  									   height, // H - height
+  									   width  // W - width
+  									   )); 
 
-  	cudnnTensorDescriptor_t output_desc;
-  	cudnn_check(cudnnCreateTensorDescriptor(&output_desc));
-  	cudnn_check(cudnnSetTensor4dDescriptor(output_desc, // descriptor to set
-  										   CUDNN_TENSOR_NHWC, // descriptor format (NCHW/NHWC)
-  										   CUDNN_DATA_FLOAT, // data type
-  										   batch_size, // N - batch size
-  										   channels, // C - number of channels (RGB)
-  										   height, // H - height
-  										   width  // W - width
-  										   )); 
+  cudnnTensorDescriptor_t output_desc;
+  cudnn_check(cudnnCreateTensorDescriptor(&output_desc));
+  cudnn_check(cudnnSetTensor4dDescriptor(output_desc, // descriptor to set
+  									   CUDNN_TENSOR_NHWC, // descriptor format (NCHW/NHWC)
+  									   CUDNN_DATA_FLOAT, // data type
+  									   batch_size, // N - batch size
+  									   channels, // C - number of channels (RGB)
+  									   height, // H - height
+  									   width  // W - width
+  									   )); 
 
-  	cudnnFilterDescriptor_t filter_desc;
-  	cudnn_check(cudnnCreateFilterDescriptor(&filter_desc));
-  	cudnn_check(cudnnSetFilter4dDescriptor(filter_desc,
-  										   CUDNN_DATA_FLOAT, // data type
-  										   CUDNN_TENSOR_NCHW, // tensor format
-  										   channels, // output channels
-  										   channels, // input channels
-  										   3, // filter height
-  										   3  // filter width
-  										   )); 
+  cudnnFilterDescriptor_t filter_desc;
+  cudnn_check(cudnnCreateFilterDescriptor(&filter_desc));
+  cudnn_check(cudnnSetFilter4dDescriptor(filter_desc,
+  									   CUDNN_DATA_FLOAT, // data type
+  									   CUDNN_TENSOR_NCHW, // tensor format
+  									   channels, // output channels
+  									   channels, // input channels
+  									   3, // filter height
+  									   3  // filter width
+  									   )); 
 
-  	cudnnConvolutionDescriptor_t convolution_desc;
-  	cudnn_check(cudnnCreateConvolutionDescriptor(&convolution_desc));
-  	cudnn_check(cudnnSetConvolution2dDescriptor(convolution_desc,
-  												1, // padding height
-  												1, // padding width
-  												1, // vertical stride
-  												1, // horizontal stride
-  												1, // dilation height
-  												1, // dilation width
-  												CUDNN_CROSS_CORRELATION,
-  												CUDNN_DATA_FLOAT
+  cudnnConvolutionDescriptor_t convolution_desc;
+  cudnn_check(cudnnCreateConvolutionDescriptor(&convolution_desc));
+  cudnn_check(cudnnSetConvolution2dDescriptor(convolution_desc,
+  											1, // padding height
+  											1, // padding width
+  											1, // vertical stride
+  											1, // horizontal stride
+  											1, // dilation height
+  											1, // dilation width
+  											CUDNN_CROSS_CORRELATION,
+  											CUDNN_DATA_FLOAT
+  											));
+
+
+  // still choosing an algo? cuDNN will do it for ya pal!
+  int algo_count;
+  cudnnConvolutionFwdAlgoPerf_t convolution_algorithms;
+  cudnn_check(cudnnGetConvolutionForwardAlgorithm_v7(cudnn,
+  												input_desc,
+  												filter_desc,
+  												convolution_desc,
+  												output_desc,
+  												0, 
+  												&algo_count, 
+  												&convolution_algorithms
   												));
 
-  	
-  	// still choosing an algo? cuDNN will do it for ya pal!
-  	int algo_count;
-  	cudnnConvolutionFwdAlgoPerf_t convolution_algorithms;
-  	cudnn_check(cudnnGetConvolutionForwardAlgorithm_v7(cudnn,
+  cudnnConvolutionFwdAlgo_t convolution_algorithm = convolution_algorithms.algo;
+
+  size_t workspace_size = 0;
+  cudnn_check(cudnnGetConvolutionForwardWorkspaceSize(cudnn,
   													input_desc,
   													filter_desc,
   													convolution_desc,
   													output_desc,
-  													0, 
-  													&algo_count, 
-  													&convolution_algorithms
+  													convolution_algorithm,
+  													&workspace_size	
   													));
 
-  	cudnnConvolutionFwdAlgo_t  convolution_algorithm = convolution_algorithms.algo;
-
-  	size_t workspace_size = 0;
-  	cudnn_check(cudnnGetConvolutionForwardWorkspaceSize(cudnn,
-  														input_desc,
-  														filter_desc,
-  														convolution_desc,
-  														output_desc,
-  														convolution_algorithm,
-  														&workspace_size	
-  														));
-
-  	std::cout << "Workspace size: " << (workspace_size/1048576.0) << " MB" << std::endl;
+	std::cout << "Workspace size: " << (workspace_size/1048576.0) << " MB" << std::endl;
 
 
-  	void* d_workspace{nullptr};
-  	cudaMalloc(&d_workspace, workspace_size);
+	void* d_workspace{nullptr};
+	cudaMalloc(&d_workspace, workspace_size);
 
-  	int image_size = batch_size * channels * height * width * sizeof(float);
+	int image_size = batch_size * channels * height * width * sizeof(float);
 
-  	float* d_input{nullptr};
-  	cudaMalloc(&d_input, image_size);
-  	cudaMemcpy(d_input, img.ptr<float>(0), image_size, cudaMemcpyHostToDevice);
+	float* d_input{nullptr};
+	cudaMalloc(&d_input, image_size);
+	cudaMemcpy(d_input, img.ptr<float>(0), image_size, cudaMemcpyHostToDevice);
 
-  	float *d_output{nullptr};
+	float *d_output{nullptr};
 	cudaMalloc(&d_output, image_size);
 	cudaMemset(d_output, 0, image_size);
 
@@ -162,5 +167,5 @@ int main(int argc, char **argv)
 	cudnnDestroyFilterDescriptor(filter_desc);
 	cudnnDestroyConvolutionDescriptor(convolution_desc);
 
-  	cudnnDestroy(cudnn);
+  cudnnDestroy(cudnn);
 }

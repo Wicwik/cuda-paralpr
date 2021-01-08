@@ -9,7 +9,7 @@ __global__ void relu_forward(float *input, float *output, int input_x, int input
 
     if (i < (input_x * input_y))
     {
-        output[i] = std::fmaxf(input[i], 0);
+        output[i] = fmaxf(input[i], 0);
     }
 }
 

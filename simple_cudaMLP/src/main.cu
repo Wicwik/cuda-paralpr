@@ -70,17 +70,17 @@ int main()
 
             std::cout << "Epoch: " << i << " | Cost: " << cost/batches << std::endl;
 
-            // tmp.copy_dh();
-            // for (int c = 0; c < tmp.dim.x; c++)
-            // {
-            //     std::cout << "[" << c << "] ";
-            //     for (int r = 0; r < tmp.dim.y; r++)
-            //     {
-            //         std::cout << tmp[c*tmp.dim.y + r] << " ";
-            //     }
+        //     tmp.copy_dh();
+        //     for (int c = 0; c < tmp.dim.x; c++)
+        //     {
+        //         std::cout << "[" << c << "] ";
+        //         for (int r = 0; r < tmp.dim.y; r++)
+        //         {
+        //             std::cout << tmp[c*tmp.dim.y + r] << " ";
+        //         }
 
-            //     std::cout << std::endl;
-            // }
+        //         std::cout << std::endl;
+        //     }
         }
     }
 

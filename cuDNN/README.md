@@ -4,7 +4,7 @@ This implementation was inspired by [this](http://www.goldsborough.me/cuda/ml/cu
 ## Compile and run
 - ``nvcc -lcudart -lcublas -lcudnn `pkg-config --cflags --libs opencv` && ./a.out``
 - ``nvcc -lcudart -lcublas -lcudnn `pkg-config --cflags --libs opencv` && ./a.out``
-- ``nvcc -lcudart -lcublas -lcudnn `pkg-config --cflags --libs opencv` convolutions.cpp && ./a.out``
+- ``nvcc -lcudart -lcublas -lcudnn `pkg-config --cflags --libs opencv` convolutions.cpp && ./a.out ../img/nvidia_logo.png``
 
 ## Perfomance
-- ``nvcc -lcudart -lcublas -lcudnn `pkg-config --cflags --libs opencv` convolutions.cpp && nvprof ./a.out``
+- ``nvcc -lcudart -lcublas -lcudnn `pkg-config --cflags --libs opencv` convolutions.cpp && nvprof ./a.out ../img/nvidia_logo.png``

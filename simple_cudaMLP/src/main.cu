@@ -8,7 +8,6 @@
 // calculate accuracy
 float acc(const Matrix& fake, const Matrix &real)
 {
-    srand( time(NULL) );
     int true_positives = 0;
 
     for (int i = 0; i < fake.dim.x; i++)
@@ -47,9 +46,9 @@ int main()
 
     NeuralNetwork nn;
 
-    nn.add_layer(new LinearLayer("Input-linear", MatDim{2, 30}));
+    nn.add_layer(new LinearLayer("Input-linear", MatDim{2, 50}));
     nn.add_layer(new ReluLayer("Hidden-ReLU"));
-    nn.add_layer(new LinearLayer("Hidden-linear2", MatDim{30, 1}));
+    nn.add_layer(new LinearLayer("Hidden-linear2", MatDim{50, 1}));
     nn.add_layer(new SigmoidLayer("Output-Sigmoid"));
 
     Matrix tmp;

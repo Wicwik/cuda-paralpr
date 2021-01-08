@@ -205,7 +205,7 @@ private:
     {
         std::random_device rd;
         std::default_random_engine gen(rd());
-        std::normal_distribution<float> dist(0.0f, 1.0f); // initialize weitgts from normal distribution
+        std::normal_distribution<float> dist(1.0f, 1.0f); // initialize weitgts from normal distribution
 
         for (int i = 0; i < _weights.dim.x; i++)
         {
